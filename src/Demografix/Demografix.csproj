@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <PackageId>Demografix</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Demografix</Authors>
+    <Company>Demografix</Company>
+    <Description>Official client for the Demografix APIs: genderize.io, agify.io, and nationalize.io. One client covers all three services and reports the remaining quota from the rate-limit response headers.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/DemografixGenderize/demografix-dotnet</PackageProjectUrl>
+    <PackageTags>demografix;genderize;agify;nationalize;names;demographics</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/DemografixGenderize/demografix-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Demografix.Tests" />
+  </ItemGroup>
+
+  <!-- System.Text.Json is in-box on net8.0; netstandard2.0 needs the package reference. -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+</Project>
