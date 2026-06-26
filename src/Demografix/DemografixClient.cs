@@ -34,7 +34,7 @@ public sealed class DemografixClient : IDisposable
     /// </summary>
     /// <param name="apiKey">The API key sent on every request. Must be non-empty.</param>
     /// <param name="timeout">Per-request timeout; defaults to ten seconds.</param>
-    /// <exception cref="ArgumentException"><paramref name="apiKey"/> is null, empty, or whitespace.</exception>
+    /// <exception cref="ValidationException"><paramref name="apiKey"/> is null, empty, or whitespace.</exception>
     public DemografixClient(string apiKey, TimeSpan? timeout = null)
         : this(apiKey, timeout, handler: null)
     {
@@ -48,8 +48,9 @@ public sealed class DemografixClient : IDisposable
     {
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            // Client-side guard: an API key is required, raised before any HTTP call.
-            throw new ArgumentException("api_key is required", nameof(apiKey));
+            // Client-side guard: an API key is required, raised before any HTTP call. Uses the same
+            // ValidationException as the >10-name batch guard so all client-side validation lands together.
+            throw new ValidationException("api_key is required", status: null, quota: null);
         }
         _apiKey = apiKey;
 

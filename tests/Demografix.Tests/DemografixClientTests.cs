@@ -202,11 +202,12 @@ public class DemografixClientTests
         var handler = new ThrowingHandler();
 
         // A blank, whitespace, or null key is rejected client-side at construction; no HTTP call is made.
-        Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: ""));
-        Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: "   "));
-        Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: null!));
+        // It throws ValidationException, the same client-side error type as the >10-name batch guard.
+        Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: ""));
+        Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: "   "));
+        Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: null!));
 
-        var ex = Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: ""));
+        var ex = Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: ""));
         Assert.Contains("api_key is required", ex.Message);
         Assert.Equal(0, handler.CallCount);
     }
