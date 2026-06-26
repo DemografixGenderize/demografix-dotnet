@@ -26,7 +26,7 @@ using var client = new DemografixClient(apiKey: "YOUR_API_KEY");
 var names = new[] { "michael", "matthew", "jane" };
 var ages = await client.AgifyBatchAsync(names);
 
-// Aggregate the predictions; do not label a person.
+// Aggregate the predictions across the list.
 var distribution = ages.Results
     .Where(r => r.Age.HasValue)
     .GroupBy(r => r.Age!.Value / 10 * 10)

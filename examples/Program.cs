@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Demografix;
 
-// Summarize the demographic mix of a list of names. The deliverable is the aggregate, not a per-name label.
+// Summarize the demographic mix of a list of names. The deliverable is the aggregate.
 
 // An API key is required; the same key works across all three services.
 var apiKey = Environment.GetEnvironmentVariable("DEMOGRAFIX_API_KEY")
