@@ -24,15 +24,18 @@ public sealed class DemografixClient : IDisposable
 
     private const int MaxBatch = 10;
 
-    private readonly string? _apiKey;
+    private readonly string _apiKey;
     private readonly HttpClient _http;
     private readonly bool _ownsHttp;
 
     /// <summary>
-    /// Constructs a client. <paramref name="apiKey"/> is optional; without it, requests go out on the free
-    /// per-IP tier. <paramref name="timeout"/> defaults to ten seconds.
+    /// Constructs a client. <paramref name="apiKey"/> is required; the same key works across all three
+    /// services. <paramref name="timeout"/> defaults to ten seconds.
     /// </summary>
-    public DemografixClient(string? apiKey = null, TimeSpan? timeout = null)
+    /// <param name="apiKey">The API key sent on every request. Must be non-empty.</param>
+    /// <param name="timeout">Per-request timeout; defaults to ten seconds.</param>
+    /// <exception cref="ArgumentException"><paramref name="apiKey"/> is null, empty, or whitespace.</exception>
+    public DemografixClient(string apiKey, TimeSpan? timeout = null)
         : this(apiKey, timeout, handler: null)
     {
     }
@@ -41,9 +44,14 @@ public sealed class DemografixClient : IDisposable
     /// Internal transport seam. Tests pass a fake <see cref="HttpMessageHandler"/> that returns canned
     /// responses without hitting the network. The public constructor stays <c>new DemografixClient(apiKey)</c>.
     /// </summary>
-    internal DemografixClient(string? apiKey, TimeSpan? timeout, HttpMessageHandler? handler)
+    internal DemografixClient(string apiKey, TimeSpan? timeout, HttpMessageHandler? handler)
     {
-        _apiKey = string.IsNullOrEmpty(apiKey) ? null : apiKey;
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            // Client-side guard: an API key is required, raised before any HTTP call.
+            throw new ArgumentException("api_key is required", nameof(apiKey));
+        }
+        _apiKey = apiKey;
 
         // The client always owns its HttpClient. When a test injects a handler, the test keeps ownership of
         // the handler (disposeHandler: false) so it can be reused or inspected after the call.
@@ -268,10 +276,8 @@ public sealed class DemografixClient : IDisposable
         {
             AppendParam(query, "country_id", countryId!);
         }
-        if (_apiKey is not null)
-        {
-            AppendParam(query, "apikey", _apiKey);
-        }
+        // The API key is required, so apikey is always present on the wire.
+        AppendParam(query, "apikey", _apiKey);
     }
 
     private static void AppendParam(StringBuilder query, string key, string value)

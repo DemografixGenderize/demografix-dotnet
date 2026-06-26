@@ -80,7 +80,7 @@ internal sealed class ThrowingHandler : HttpMessageHandler
 /// </summary>
 internal static class TestClient
 {
-    public static DemografixClient Create(HttpMessageHandler handler, string? apiKey = null)
+    public static DemografixClient Create(HttpMessageHandler handler, string apiKey = "test-key")
     {
         return new DemografixClient(apiKey, timeout: TimeSpan.FromSeconds(10), handler: handler);
     }

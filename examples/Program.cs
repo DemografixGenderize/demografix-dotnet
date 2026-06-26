@@ -6,8 +6,10 @@ using Demografix;
 
 // Summarize the demographic mix of a list of names. The deliverable is the aggregate, not a per-name label.
 
-var apiKey = Environment.GetEnvironmentVariable("DEMOGRAFIX_API_KEY");
-using var client = new DemografixClient(apiKey); // api key is optional
+// An API key is required; the same key works across all three services.
+var apiKey = Environment.GetEnvironmentVariable("DEMOGRAFIX_API_KEY")
+    ?? throw new InvalidOperationException("Set DEMOGRAFIX_API_KEY to your Demografix API key.");
+using var client = new DemografixClient(apiKey);
 
 var names = new[] { "michael", "matthew", "jane", "nguyen", "lois", "peter" };
 

@@ -186,21 +186,29 @@ public class DemografixClientTests
     }
 
     [Fact]
-    public async Task Api_key_is_added_only_when_set()
+    public async Task Api_key_is_always_sent()
     {
-        var withKey = new FakeHandler(HttpStatusCode.OK, GenderizeSingle);
-        using (var client = TestClient.Create(withKey, apiKey: "secret"))
-        {
-            await client.GenderizeAsync("peter");
-            Assert.Contains("apikey=secret", withKey.LastRequest!.RequestUri!.Query);
-        }
+        var handler = new FakeHandler(HttpStatusCode.OK, GenderizeSingle);
+        using var client = TestClient.Create(handler, apiKey: "secret");
 
-        var withoutKey = new FakeHandler(HttpStatusCode.OK, GenderizeSingle);
-        using (var client = TestClient.Create(withoutKey))
-        {
-            await client.GenderizeAsync("peter");
-            Assert.DoesNotContain("apikey", withoutKey.LastRequest!.RequestUri!.Query);
-        }
+        await client.GenderizeAsync("peter");
+
+        Assert.Contains("apikey=secret", handler.LastRequest!.RequestUri!.Query);
+    }
+
+    [Fact]
+    public void Missing_api_key_throws_before_any_http_call()
+    {
+        var handler = new ThrowingHandler();
+
+        // A blank, whitespace, or null key is rejected client-side at construction; no HTTP call is made.
+        Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: ""));
+        Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: "   "));
+        Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: null!));
+
+        var ex = Assert.Throws<ArgumentException>(() => TestClient.Create(handler, apiKey: ""));
+        Assert.Contains("api_key is required", ex.Message);
+        Assert.Equal(0, handler.CallCount);
     }
 
     [Fact]

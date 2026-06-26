@@ -1,8 +1,8 @@
 # Demografix for C#
 
-The official C# client for the Demografix APIs: [genderize.io](https://genderize.io) (gender),
-[agify.io](https://agify.io) (age), and [nationalize.io](https://nationalize.io) (nationality). One client
-covers all three services and reports the remaining quota carried on every response.
+Run demographic analysis over names — predicted gender, age, and nationality — from one client. The official
+C# package covers [genderize.io](https://genderize.io), [agify.io](https://agify.io), and
+[nationalize.io](https://nationalize.io).
 
 ## Install
 
@@ -21,7 +21,7 @@ remaining quota.
 using System.Linq;
 using Demografix;
 
-using var client = new DemografixClient(apiKey: "YOUR_API_KEY"); // apiKey is optional
+using var client = new DemografixClient(apiKey: "YOUR_API_KEY");
 
 var names = new[] { "michael", "matthew", "jane" };
 var ages = await client.AgifyBatchAsync(names);
@@ -35,16 +35,19 @@ var distribution = ages.Results
 Console.WriteLine(ages.Quota.Remaining); // 24987
 ```
 
-The constructor takes an optional `apiKey` and an optional `timeout` (default ten seconds). The service hosts
-and the User-Agent are fixed constants, not options. Higher request volumes require an API key; without one,
-requests go out unauthenticated.
+The constructor takes a required `apiKey` and an optional `timeout` (default ten seconds). The service hosts
+and the User-Agent are fixed constants, not options.
+
+An API key is required. Creating one is free and includes 2,500 requests per month. Generate a key in your
+dashboard at [genderize.io](https://genderize.io), [agify.io](https://agify.io), or
+[nationalize.io](https://nationalize.io). One key works across all three services.
 
 ## genderize
 
 Predict gender across a list and summarize the split.
 
 ```csharp
-using var client = new DemografixClient();
+using var client = new DemografixClient("YOUR_API_KEY");
 
 var one = await client.GenderizeAsync("peter");
 // one.Gender -> "male", one.Probability -> 1.0
@@ -63,7 +66,7 @@ var split = batch.Results
 Predict age across a list and build a distribution.
 
 ```csharp
-using var client = new DemografixClient();
+using var client = new DemografixClient("YOUR_API_KEY");
 
 var one = await client.AgifyAsync("michael");
 // one.Age -> 57
@@ -82,7 +85,7 @@ var byDecade = batch.Results
 Predict nationality across a list and tally the mix.
 
 ```csharp
-using var client = new DemografixClient();
+using var client = new DemografixClient("YOUR_API_KEY");
 
 var one = await client.NationalizeAsync("nguyen");
 // one.Country[0].CountryId -> "VN"
@@ -170,5 +173,4 @@ predictions) plus one `Quota` for the response.
 
 ## Reference
 
-Full API reference: <https://genderize.io/documentation/api>. One API key works across all three services and
-shares one quota.
+Full API reference: <https://genderize.io/documentation/api>. One API key works across all three services.
