@@ -20,6 +20,9 @@ public class DemografixClientTests
     private const string GenderizeNull =
         "{ \"name\": \"xÿz\", \"gender\": null, \"probability\": 0.0, \"count\": 0 }";
 
+    private const string GenderizeBatchOfOne =
+        "[ { \"count\": 1352696, \"name\": \"peter\", \"gender\": \"male\", \"probability\": 1.0 } ]";
+
     private const string AgifySingle =
         "{ \"count\": 311558, \"name\": \"michael\", \"age\": 57 }";
 
@@ -381,5 +384,32 @@ public class DemografixClientTests
         Assert.Equal(502, ex.Status);
         Assert.NotNull(ex.Quota);
         Assert.Equal(24987, ex.Quota!.Remaining);
+    }
+
+    // ---- 8. batch of exactly one name sends name[] (never name=) and parses a one-element array ----
+
+    [Fact]
+    public async Task Genderize_batch_of_one_sends_name_array_and_parses_one_element_array()
+    {
+        var handler = new FakeHandler(HttpStatusCode.OK, GenderizeBatchOfOne);
+        using var client = TestClient.Create(handler);
+
+        var batch = await client.GenderizeBatchAsync(new[] { "peter" });
+
+        // The query keys on the call form, not the name count: name[] is sent, never a bare name=.
+        var query = handler.LastRequest!.RequestUri!.Query;
+        Assert.Contains("name%5B%5D=peter", query);
+        Assert.DoesNotContain("?name=", query);
+        Assert.DoesNotContain("&name=", query);
+
+        // The one-element array parses into one result plus quota.
+        var result = Assert.Single(batch.Results);
+        Assert.Equal("peter", result.Name);
+        Assert.Equal("male", result.Gender);
+        Assert.Equal(1.0, result.Probability);
+        Assert.Equal(1352696, result.Count);
+        Assert.Equal(25000, batch.Quota.Limit);
+        Assert.Equal(24987, batch.Quota.Remaining);
+        Assert.Equal(1314000, batch.Quota.Reset);
     }
 }
