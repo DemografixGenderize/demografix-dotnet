@@ -224,7 +224,7 @@ public class DemografixClientTests
         await client.GenderizeAsync("peter");
 
         Assert.True(handler.LastRequest!.Headers.TryGetValues("User-Agent", out var values));
-        Assert.Contains("demografix-csharp/0.2.0", string.Join(",", values!));
+        Assert.Contains("demografix-csharp/0.2.1", string.Join(",", values!));
     }
 
     // ---- 5. batch of 101 raises ValidationException with NO HTTP call ----

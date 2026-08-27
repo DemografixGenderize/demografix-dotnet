@@ -15,7 +15,7 @@ namespace Demografix;
 /// </summary>
 public sealed class DemografixClient : IDisposable
 {
-    private const string Version = "0.2.0";
+    private const string Version = "0.2.1";
     private const string UserAgent = "demografix-csharp/" + Version;
 
     private const string GenderizeBase = "https://api.genderize.io";

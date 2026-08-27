@@ -9,7 +9,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 
     <PackageId>Demografix</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Authors>Demografix</Authors>
     <Company>Demografix</Company>
     <Description>Predict gender, age, and nationality from names. Official client for the genderize.io, agify.io, and nationalize.io APIs. One client covers all three services: look up a single name or send a batch of up to 100 names in one request for bulk demographic analysis, optionally scoped to a country, and read the remaining quota from the rate-limit response headers.</Description>
