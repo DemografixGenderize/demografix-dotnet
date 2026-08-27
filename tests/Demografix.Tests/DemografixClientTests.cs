@@ -205,7 +205,7 @@ public class DemografixClientTests
         var handler = new ThrowingHandler();
 
         // A blank, whitespace, or null key is rejected client-side at construction; no HTTP call is made.
-        // It throws ValidationException, the same client-side error type as the >10-name batch guard.
+        // It throws ValidationException, the same client-side error type as the >100-name batch guard.
         Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: ""));
         Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: "   "));
         Assert.Throws<ValidationException>(() => TestClient.Create(handler, apiKey: null!));
@@ -224,24 +224,24 @@ public class DemografixClientTests
         await client.GenderizeAsync("peter");
 
         Assert.True(handler.LastRequest!.Headers.TryGetValues("User-Agent", out var values));
-        Assert.Contains("demografix-csharp/0.1.0", string.Join(",", values!));
+        Assert.Contains("demografix-csharp/0.2.0", string.Join(",", values!));
     }
 
-    // ---- 5. batch of 11 raises ValidationException with NO HTTP call ----
+    // ---- 5. batch of 101 raises ValidationException with NO HTTP call ----
 
     [Fact]
-    public async Task Batch_over_ten_raises_validation_before_any_http_call()
+    public async Task Batch_over_max_raises_validation_before_any_http_call()
     {
         var handler = new ThrowingHandler();
         using var client = TestClient.Create(handler);
 
-        var eleven = new List<string>();
-        for (var i = 0; i < 11; i++)
+        var overLimit = new List<string>();
+        for (var i = 0; i < 101; i++)
         {
-            eleven.Add("name" + i);
+            overLimit.Add("name" + i);
         }
 
-        var ex = await Assert.ThrowsAsync<ValidationException>(() => client.GenderizeBatchAsync(eleven));
+        var ex = await Assert.ThrowsAsync<ValidationException>(() => client.GenderizeBatchAsync(overLimit));
         Assert.Equal(0, handler.CallCount);
         Assert.Null(ex.Status);
         Assert.Null(ex.Quota);
@@ -281,18 +281,18 @@ public class DemografixClientTests
     }
 
     [Fact]
-    public async Task Batch_of_ten_is_allowed()
+    public async Task Batch_of_max_is_allowed()
     {
         var handler = new FakeHandler(HttpStatusCode.OK, "[]");
         using var client = TestClient.Create(handler);
 
-        var ten = new List<string>();
-        for (var i = 0; i < 10; i++)
+        var atLimit = new List<string>();
+        for (var i = 0; i < 100; i++)
         {
-            ten.Add("name" + i);
+            atLimit.Add("name" + i);
         }
 
-        var batch = await client.GenderizeBatchAsync(ten);
+        var batch = await client.GenderizeBatchAsync(atLimit);
         Assert.Empty(batch.Results);
         Assert.Equal(1, handler.CallCount);
     }

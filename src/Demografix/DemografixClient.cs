@@ -15,14 +15,14 @@ namespace Demografix;
 /// </summary>
 public sealed class DemografixClient : IDisposable
 {
-    private const string Version = "0.1.0";
+    private const string Version = "0.2.0";
     private const string UserAgent = "demografix-csharp/" + Version;
 
     private const string GenderizeBase = "https://api.genderize.io";
     private const string AgifyBase = "https://api.agify.io";
     private const string NationalizeBase = "https://api.nationalize.io";
 
-    private const int MaxBatch = 10;
+    private const int MaxBatch = 100;
 
     private readonly string _apiKey;
     private readonly HttpClient _http;
@@ -49,7 +49,7 @@ public sealed class DemografixClient : IDisposable
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             // Client-side guard: an API key is required, raised before any HTTP call. Uses the same
-            // ValidationException as the >10-name batch guard so all client-side validation lands together.
+            // ValidationException as the >100-name batch guard so all client-side validation lands together.
             throw new ValidationException("api_key is required", status: null, quota: null);
         }
         _apiKey = apiKey;
@@ -95,15 +95,15 @@ public sealed class DemografixClient : IDisposable
     }
 
     /// <summary>
-    /// Predicts the gender of up to ten names in one request, preserving input order. Pass an optional
+    /// Predicts the gender of up to 100 names in one request, preserving input order. Pass an optional
     /// <paramref name="countryId"/> to scope the whole batch to one country.
     /// </summary>
-    /// <param name="names">The names to classify; at most ten.</param>
+    /// <param name="names">The names to classify; at most 100.</param>
     /// <param name="countryId">Optional country to scope the predictions to; echoed back uppercase.</param>
     /// <param name="cancellationToken">Token to cancel the request.</param>
     /// <returns>The per-name predictions in input order plus one response <see cref="Demografix.Quota"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="names"/> is null.</exception>
-    /// <exception cref="ValidationException">More than ten names were supplied; raised before any HTTP call.</exception>
+    /// <exception cref="ValidationException">More than 100 names were supplied; raised before any HTTP call.</exception>
     /// <exception cref="DemografixException">The request failed or the API returned a non-2xx status.</exception>
     public async Task<Batch<GenderizePrediction>> GenderizeBatchAsync(
         IEnumerable<string> names,
@@ -151,15 +151,15 @@ public sealed class DemografixClient : IDisposable
     }
 
     /// <summary>
-    /// Predicts the age of up to ten names in one request, preserving input order. Pass an optional
+    /// Predicts the age of up to 100 names in one request, preserving input order. Pass an optional
     /// <paramref name="countryId"/> to scope the whole batch to one country.
     /// </summary>
-    /// <param name="names">The names to classify; at most ten.</param>
+    /// <param name="names">The names to classify; at most 100.</param>
     /// <param name="countryId">Optional country to scope the predictions to; echoed back uppercase.</param>
     /// <param name="cancellationToken">Token to cancel the request.</param>
     /// <returns>The per-name predictions in input order plus one response <see cref="Demografix.Quota"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="names"/> is null.</exception>
-    /// <exception cref="ValidationException">More than ten names were supplied; raised before any HTTP call.</exception>
+    /// <exception cref="ValidationException">More than 100 names were supplied; raised before any HTTP call.</exception>
     /// <exception cref="DemografixException">The request failed or the API returned a non-2xx status.</exception>
     public async Task<Batch<AgifyPrediction>> AgifyBatchAsync(
         IEnumerable<string> names,
@@ -204,14 +204,14 @@ public sealed class DemografixClient : IDisposable
     }
 
     /// <summary>
-    /// Predicts the likely nationality of up to ten names in one request, preserving input order. Nationalize
+    /// Predicts the likely nationality of up to 100 names in one request, preserving input order. Nationalize
     /// does not take a country_id.
     /// </summary>
-    /// <param name="names">The names to classify; at most ten.</param>
+    /// <param name="names">The names to classify; at most 100.</param>
     /// <param name="cancellationToken">Token to cancel the request.</param>
     /// <returns>The per-name predictions in input order plus one response <see cref="Demografix.Quota"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="names"/> is null.</exception>
-    /// <exception cref="ValidationException">More than ten names were supplied; raised before any HTTP call.</exception>
+    /// <exception cref="ValidationException">More than 100 names were supplied; raised before any HTTP call.</exception>
     /// <exception cref="DemografixException">The request failed or the API returned a non-2xx status.</exception>
     public async Task<Batch<NationalizePrediction>> NationalizeBatchAsync(
         IEnumerable<string> names,

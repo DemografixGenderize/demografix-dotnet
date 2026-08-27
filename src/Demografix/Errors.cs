@@ -54,12 +54,12 @@ public sealed class SubscriptionException : DemografixException
 }
 
 /// <summary>
-/// Raised on a 422 response, and client-side before any HTTP call when a batch exceeds ten names.
+/// Raised on a 422 response, and client-side before any HTTP call when a batch exceeds 100 names.
 /// </summary>
 public sealed class ValidationException : DemografixException
 {
     /// <summary>Creates a new <see cref="ValidationException"/>.</summary>
-    /// <param name="message">The error message; passed through from the API, or a client-side message when a batch exceeds ten names.</param>
+    /// <param name="message">The error message; passed through from the API, or a client-side message when a batch exceeds 100 names.</param>
     /// <param name="status">The HTTP status code; 422 by default, null when raised client-side.</param>
     /// <param name="quota">The response quota when the rate-limit headers were present.</param>
     public ValidationException(string message, int? status = 422, Quota? quota = null)

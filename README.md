@@ -1,8 +1,13 @@
 # Demografix for C#
 
-Run demographic analysis over names — predicted gender, age, and nationality — from one client. The official
-C# package covers [genderize.io](https://genderize.io), [agify.io](https://agify.io), and
-[nationalize.io](https://nationalize.io).
+Predict gender, age, and nationality from first names. One client covers all three Demografix APIs —
+[genderize.io](https://genderize.io) (gender), [agify.io](https://agify.io) (age), and
+[nationalize.io](https://nationalize.io) (nationality) — with single-name lookups and batches of up
+to 100 names per request.
+
+[![NuGet](https://img.shields.io/nuget/v/Demografix)](https://www.nuget.org/packages/Demografix)
+[![CI](https://github.com/DemografixGenderize/demografix-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/DemografixGenderize/demografix-dotnet/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Install
 
@@ -35,20 +40,14 @@ var distribution = ages.Results
 Console.WriteLine(ages.Quota.Remaining); // 24987
 ```
 
-The constructor takes a required `apiKey` and an optional `timeout` (default ten seconds). The service hosts
-and the User-Agent are fixed constants, not options.
-
-An API key is required. Creating one is free and includes 2,500 requests per month. Generate a key in your
-dashboard at [genderize.io](https://genderize.io), [agify.io](https://agify.io), or
-[nationalize.io](https://nationalize.io). One key works across all three services.
+The constructor takes a required `apiKey` and an optional `timeout` (default ten seconds). The
+service hosts and the User-Agent are fixed constants, not options.
 
 ## genderize
 
 Predict gender across a list and summarize the split.
 
 ```csharp
-using var client = new DemografixClient("YOUR_API_KEY");
-
 var one = await client.GenderizeAsync("peter");
 // one.Gender -> "male", one.Probability -> 1.0
 
@@ -58,16 +57,14 @@ var split = batch.Results
     .ToDictionary(g => g.Key, g => g.Count());
 ```
 
-`GenderizePrediction` exposes `Name`, `Gender` (`"male"`, `"female"`, or `null`), `Probability`, `Count`, and
-`CountryId`.
+`GenderizePrediction` exposes `Name`, `Gender` (`"male"`, `"female"`, or `null`), `Probability`,
+`Count`, and `CountryId`. A `null` gender is a successful response, not an error.
 
 ## agify
 
 Predict age across a list and build a distribution.
 
 ```csharp
-using var client = new DemografixClient("YOUR_API_KEY");
-
 var one = await client.AgifyAsync("michael");
 // one.Age -> 57
 
@@ -85,8 +82,6 @@ var byDecade = batch.Results
 Predict nationality across a list and tally the mix.
 
 ```csharp
-using var client = new DemografixClient("YOUR_API_KEY");
-
 var one = await client.NationalizeAsync("nguyen");
 // one.Country[0].CountryId -> "VN"
 
@@ -97,15 +92,34 @@ var mix = batch.Results
     .ToDictionary(g => g.Key, g => g.Count());
 ```
 
-`NationalizePrediction` exposes `Name`, `Country` (up to five `NationalizeCountry` candidates in descending
-probability), and `Count`. `NationalizeCountry` exposes `CountryId` and `Probability`.
+`NationalizePrediction` exposes `Name`, `Country` (up to five `NationalizeCountry` candidates in
+descending probability), and `Count`. `NationalizeCountry` exposes `CountryId` and `Probability`.
+
+## Batch limit
+
+Each batch accepts at most 100 names. A batch of more than 100 throws `ValidationException` before
+any HTTP call. Chunk a longer list and aggregate across the chunks.
+
+```csharp
+var split = new Dictionary<string, int>();
+for (var i = 0; i < roster.Count; i += 100)
+{
+    var chunk = roster.Skip(i).Take(100).ToArray();
+    var batch = await client.GenderizeBatchAsync(chunk);
+
+    foreach (var r in batch.Results)
+    {
+        var key = r.Gender ?? "unknown";
+        split[key] = split.TryGetValue(key, out var n) ? n + 1 : 1;
+    }
+}
+```
 
 ## country_id
 
-`GenderizeAsync`, `GenderizeBatchAsync`, `AgifyAsync`, and `AgifyBatchAsync` accept an optional `countryId`
-(ISO 3166-1 alpha-2) that scopes the prediction to one country. The server echoes it back uppercase on each
-prediction. `nationalize` does not take this parameter. Pass it on a batch to scope a whole list and summarize
-the result in aggregate.
+`GenderizeAsync`, `GenderizeBatchAsync`, `AgifyAsync`, and `AgifyBatchAsync` accept an optional
+`countryId` (ISO 3166-1 alpha-2) that scopes the prediction to one country. The server echoes it back
+uppercase on every prediction. `nationalize` does not take this parameter.
 
 ```csharp
 var names = new[] { "kim", "andrea", "jan" };
@@ -117,10 +131,21 @@ var split = batch.Results
 // batch.Results[0].CountryId -> "US" on every row
 ```
 
+Scoping changes the prediction: `andrea` reads female with probability 0.99 in the United States and
+male with probability 0.79 in Italy.
+
+```csharp
+(await client.GenderizeAsync("andrea", countryId: "US")).Gender; // "female"
+(await client.GenderizeAsync("andrea", countryId: "IT")).Gender; // "male"
+```
+
+When the request sends no `countryId`, the field is `null`.
+
 ## Quota
 
-Every result and every raised error carries a `Quota` with three fields read from the rate-limit response
-headers. Read it off the returned value or the caught error; it is never cached on the client.
+Every result and every raised error carries a `Quota` with three fields read from the rate-limit
+response headers. Read it off the returned value or the caught error; it is never cached on the
+client.
 
 | Field | Meaning |
 |---|---|
@@ -130,8 +155,9 @@ headers. Read it off the returned value or the caught error; it is never cached 
 
 ## Errors
 
-Non-2xx responses throw a typed exception. Transport failures throw `TransportException`. Every exception
-extends `DemografixException` and carries `Status`, `Message`, and `Quota` (when the headers were present).
+Non-2xx responses throw a typed exception. Transport failures throw `TransportException`. Every
+exception extends `DemografixException` and carries `Status`, `Message`, and `Quota` (when the
+headers were present).
 
 | Status | Exception |
 |---|---|
@@ -142,8 +168,7 @@ extends `DemografixException` and carries `Status`, `Message`, and `Quota` (when
 | other non-2xx | `DemografixException` |
 | network / timeout / non-JSON | `TransportException` |
 
-A batch of more than ten names throws `ValidationException` before any HTTP call. A `RateLimitException`
-always carries `Quota`, so `Quota.Reset` tells you how long to wait.
+A `RateLimitException` always carries `Quota`, so `Quota.Reset` tells you how long to wait.
 
 ```csharp
 try
@@ -168,9 +193,22 @@ catch (RateLimitException ex)
 | `NationalizeAsync(name)` | `NationalizeResult` | no |
 | `NationalizeBatchAsync(names)` | `Batch<NationalizePrediction>` | no |
 
-A single result exposes the prediction fields plus a `Quota`. A batch result exposes `Results` (the per-name
-predictions) plus one `Quota` for the response.
+A single result exposes the prediction fields plus a `Quota`. A batch result exposes `Results` (the
+per-name predictions) plus one `Quota` for the response. Every method also accepts an optional
+`CancellationToken`.
 
-## Reference
+## API keys
 
-Full API reference: <https://genderize.io/documentation/api>. One API key works across all three services.
+An API key is required. Creating one is free and includes 2,500 names per month.
+
+Quota counts **names, not requests**. A single-name call costs 1. A batch of 100 names costs 100. The
+free tier therefore covers 2,500 names in a month however they are split across calls.
+
+Generate a key in your dashboard at [genderize.io](https://genderize.io),
+[agify.io](https://agify.io), or [nationalize.io](https://nationalize.io). One key works across all
+three services. Full reference:
+[genderize.io/documentation/api](https://genderize.io/documentation/api).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
