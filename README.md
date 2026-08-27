@@ -1,6 +1,6 @@
 # Demografix for C#
 
-Predict gender, age, and nationality from first names. One client covers all three Demografix APIs —
+Predict gender, age, and nationality from names. One client covers all three Demografix APIs —
 [genderize.io](https://genderize.io) (gender), [agify.io](https://agify.io) (age), and
 [nationalize.io](https://nationalize.io) (nationality) — with single-name lookups and batches of up
 to 100 names per request.
@@ -45,7 +45,7 @@ service hosts and the User-Agent are fixed constants, not options.
 
 ## genderize
 
-Predict gender across a list and summarize the split.
+Predict gender from names. Aggregate a list and summarize the split.
 
 ```csharp
 var one = await client.GenderizeAsync("peter");
@@ -62,7 +62,7 @@ var split = batch.Results
 
 ## agify
 
-Predict age across a list and build a distribution.
+Predict age from names. Build a distribution across a list.
 
 ```csharp
 var one = await client.AgifyAsync("michael");
@@ -79,7 +79,7 @@ var byDecade = batch.Results
 
 ## nationalize
 
-Predict nationality across a list and tally the mix.
+Predict nationality from names. Tally the mix across a list.
 
 ```csharp
 var one = await client.NationalizeAsync("nguyen");
